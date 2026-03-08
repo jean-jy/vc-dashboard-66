@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useState, useEffect, useMemo } from 'react';
 import { 
   TrendingUp, 
@@ -28,7 +30,6 @@ import {
 } from 'recharts';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { GoogleGenerativeAI } from '@google/generative-ai';
 
 // Utility for tailwind classes
 function cn(...inputs) {
@@ -150,25 +151,17 @@ const ChartCard = ({ title, children, className }) => (
   </div>
 );
 
-// --- AI Section Components ---
-
 const AIRefinery = ({ dataSummary, metrics }) => {
-  const [apiKey, setApiKey] = useState(import.meta.env.VITE_GEMINI_API_KEY || localStorage.getItem('gemini_api_key') || '');
   const [model, setModel] = useState('gemini-1.5-flash');
   const [loading, setLoading] = useState(false);
   const [insights, setInsights] = useState(null);
   const [error, setError] = useState(null);
 
-  const saveApiKey = (key) => {
-    setApiKey(key);
-    localStorage.setItem('gemini_api_key', key);
-  };
-
   const generateAIInsights = async () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch('http://localhost:3001/api/insights', {
+      const response = await fetch('/api/insights', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ metrics, dataSummary, model })
@@ -244,7 +237,7 @@ const AIRefinery = ({ dataSummary, metrics }) => {
               <span>Alert</span>
             </div>
             <p className="text-slate-300 text-sm leading-relaxed italic">
-              {insights ? insights.alert : "Enter API key to generate smart alerts based on current trends."}
+              {insights ? insights.alert : "AI-driven analysis of risks based on current trends."}
             </p>
           </div>
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 p-6 rounded-2xl">
@@ -253,7 +246,7 @@ const AIRefinery = ({ dataSummary, metrics }) => {
               <span>Opportunity</span>
             </div>
             <p className="text-slate-300 text-sm leading-relaxed italic">
-              {insights ? insights.opportunity : "Discover untapped growth potential hidden in your sales metrics."}
+              {insights ? insights.opportunity : "Discover growth potential hidden in your metrics."}
             </p>
           </div>
           <div className="bg-white/5 backdrop-blur-sm border border-white/10 p-6 rounded-2xl">
@@ -262,16 +255,10 @@ const AIRefinery = ({ dataSummary, metrics }) => {
               <span>Suggestion</span>
             </div>
             <p className="text-slate-300 text-sm leading-relaxed italic">
-              {insights ? insights.suggestion : "Get AI-driven next steps to optimize your conversion rates."}
+              {insights ? insights.suggestion : "Actionable next steps to optimize conversion."}
             </p>
           </div>
         </div>
-        
-        {!apiKey && (
-            <p className="mt-6 text-xs text-slate-500 text-center">
-                Need an API key? Get one at the <a href="https://aistudio.google.com/app/apikey" target="_blank" rel="noreferrer" className="text-blue-400 hover:underline">Google AI Studio</a>.
-            </p>
-        )}
       </div>
     </div>
   );
@@ -300,7 +287,7 @@ const Sidebar = () => (
   </aside>
 );
 
-export default function App() {
+export default function Dashboard() {
   const [rawData, setRawData] = useState([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -313,7 +300,7 @@ export default function App() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch('http://localhost:3001/api/sales');
+        const response = await fetch('/api/sales');
         const rows = await response.json();
         setRawData(rows);
         setLoading(false);
@@ -364,7 +351,6 @@ export default function App() {
     })();
 
     const highCVRChannel = (() => {
-        // Mock CVR based on orders/visitors if columns exist
         const stats = filteredData.reduce((acc, r) => {
             if (!acc[r.channel]) acc[r.channel] = { orders: 0, visitors: 0 };
             acc[r.channel].orders += (r.orders || 0);
@@ -433,7 +419,7 @@ export default function App() {
         {/* AI Refinery Section */}
         <AIRefinery 
             metrics={metrics} 
-            dataSummary={filteredData.slice(0, 10)} // Passing context for AI
+            dataSummary={filteredData.slice(0, 10)} 
         />
 
         {/* Core Quick Insights */}
